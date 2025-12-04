@@ -35,11 +35,14 @@ if __name__ == "__main__":
     rating_average_by_country = df.groupby("country")["rating"].mean()
     df["rating_average"] = df.groupby("country")["rating"].transform('mean')
 
-    
+    # filtering by condition
+    df = df[(df["total_amount"] > 1000) & (df["rating"] > 4.5)]
 
+    # create column delivery_status
+    df["delivery_status"] = ["delayed" if x > 7 else "on time" for x in df["shipping_days"]]
 
     # export to csv
     df.to_csv("clean_orders_205368319.csv")
 
+    
 
-   
