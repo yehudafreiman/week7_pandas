@@ -1,7 +1,4 @@
-
-import pandas as pd
-
-from utils import load_json
+from utils import load_json, export_csv, cleaning_data, converse_data_type, create_column, sort_values, filtering_by_condition
 
 if __name__ == "__main__":
 
@@ -9,40 +6,26 @@ if __name__ == "__main__":
     df = load_json("orders_simple.json")
 
     # cleaning data
-    df["total_amount"] = df["total_amount"].str.replace('$', '')
-
-    df["items_html"] = df["items_html"].str.replace('<b>', '')
-    df["items_html"] = df["items_html"].str.replace('</b>', ' ')
-    df["items_html"] = df["items_html"].str.replace('<br>', '')
-
-    df["coupon_used"] = df["coupon_used"].replace({'': 'no coupon'})
+    df = cleaning_data(df, "total_amount")
+    df = cleaning_data(df, "items_html")
+    df = cleaning_data(df, "coupon_used")
 
     # converse data type
-    df["total_amount"] = df["total_amount"].astype(float)
-    df["order_date"] = pd.to_datetime(df["order_date"])
+    df = converse_data_type(df, "total_amount")
+    df = converse_data_type(df, "order_date")
 
-    # create column order_month
-    df["order_month"] = df['order_date'].dt.month
-
-    # create column high_value_order
-    average_total_amount = df["total_amount"].mean()
-    df["high_value_order"] = [True if x > average_total_amount else False for x in df["total_amount"]]
+    # create columns
+    create_column(df, "order_month")
+    create_column(df, "high_value_order")
+    create_column(df, "rating_average")
+    create_column(df, "delivery_status")
 
     # sort df by total_amount
-    df = df.sort_values("total_amount", ascending=False)
-
-    # create column rating_average
-    rating_average_by_country = df.groupby("country")["rating"].mean()
-    df["rating_average"] = df.groupby("country")["rating"].transform('mean')
+    df = sort_values(df, "total_amount")
 
     # filtering by condition
-    df = df[(df["total_amount"] > 1000) & (df["rating"] > 4.5)]
-
-    # create column delivery_status
-    df["delivery_status"] = ["delayed" if x > 7 else "on time" for x in df["shipping_days"]]
+    df = filtering_by_condition(df, "total_amount", "rating")
 
     # export to csv
-    df.to_csv("clean_orders_205368319.csv")
-
-    
+    df = export_csv(df, "clean_orders_205368319.csv")
 
